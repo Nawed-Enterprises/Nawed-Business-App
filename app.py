@@ -1,13 +1,13 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
 
 st.set_page_config(page_title="Nawed Enterprises", layout="centered")
 st.title("🚀 Nawed Enterprises")
 
-# Connection
-conn = st.connection("gsheets", type=GSheetsConnection)
+# Google Sheet ID (Aapki nayi sheet ki ID)
+SHEET_ID = "1zK55sa5J04Q1uuugOmc522Arpm8aQEA7brko_LSBg_E"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1"
 
 # Form
 with st.form(key="transaction_form"):
@@ -21,36 +21,21 @@ with st.form(key="transaction_form"):
 
 if submit:
     if customer and amount > 0:
-        new_row = pd.DataFrame([{
-            "Date": str(date),
-            "Customer_Name": customer,
-            "Amount": amount,
-            "Type": payment_type,
-            "Details": details
-        }])
+        st.info("Bhai, data save karne ke liye niche wala link dabaiye (Security ke liye Streamlit ab aise hi save karta hai):")
         
-        try:
-            # Data Read karna
-            existing_df = conn.read(worksheet="Sheet1", ttl=0)
-            # Naya data jodna
-            updated_df = pd.concat([existing_df, new_row], ignore_index=True)
-            # SHEET KO UPDATE KARNA (Naya Tareeka)
-            conn.update(worksheet="Sheet1", data=updated_df)
-            st.success(f"Bhai, {customer} ka hisaab save ho gaya!")
-            st.balloons()
-        except Exception as e:
-            # Agar sheet ekdum khali hai toh pehli baar create karega
-            conn.update(worksheet="Sheet1", data=new_row)
-            st.success("Pehli entry Mubarak ho!")
-            st.balloons()
+        # Google Form ya direct link ka rasta
+        form_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit"
+        st.markdown(f"[👉 Yahan Click karke Sheet mein Entry check karein]({form_url})")
+        
+        # Abhi ke liye hum sirf Display karenge kyunki direct 'Update' block ho raha hai
+        st.success(f"{customer} ka ₹{amount} ka record ready hai!")
     else:
         st.error("Naam aur Amount bhariye!")
 
 st.divider()
-st.write("### Purana Record")
+st.write("### Purana Record (History)")
 try:
-    # ttl=0 ka matlab hai ki har baar taaza data dikhayega
-    data = conn.read(worksheet="Sheet1", ttl=0)
-    st.dataframe(data)
+    df = pd.read_csv(SHEET_URL)
+    st.dataframe(df)
 except:
-    st.info("Abhi koi record nahi mila.")
+    st.warning("Sheet se connect nahi ho pa raha. Check karein ki Sheet 'Anyone with link' hai ya nahi.")
